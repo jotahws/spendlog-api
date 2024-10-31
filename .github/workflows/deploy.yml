@@ -1,0 +1,55 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create .env.prod file
+        run: |
+          set -e  # Exit on error
+          echo "" > .env.prod  # Clear the file if it exists
+          echo "ENV=${{ secrets.ENV }}" >> .env.prod
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env.prod
+          echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env.prod
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env.prod
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env.prod
+          echo "PORT=${{ secrets.PORT }}" >> .env.prod
+
+        shell: bash
+        
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy and Build on EC2
+        run: |
+          set -e  # Exit on error
+          echo "Copying files to the EC2 instance..."
+          # Copy all files to the EC2 instance
+          scp -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }} || { echo "Failed to copy files"; exit 1; }
+
+          echo "Connecting via SSH and building the Docker container..."
+          # Connect via SSH and build, stop, remove, and run the new container
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e  # Exit on error
+            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            echo "Building Docker image..."
+            docker build -t jwind/spendlog-api . || { echo "Docker build failed"; exit 1; }
+            echo "Stopping existing container..."
+            docker stop prod || true
+            echo "Removing existing container..."
+            docker rm prod || true
+            echo "Running new container..."
+            docker run -d -p 443:8000 --name prod jwind/spendlog-api || { echo "Failed to run Docker container"; exit 1; }
+          EOF
