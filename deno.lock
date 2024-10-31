@@ -170,6 +170,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@db/mongo@0.33",
+      "jsr:@oak/commons@1",
       "jsr:@oak/oak@^17.1.0",
       "npm:zod@^3.23.8"
     ]

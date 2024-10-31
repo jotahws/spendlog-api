@@ -1,5 +1,5 @@
+import { Status } from "@oak/oak";
 import type { RouterContext } from "@oak/oak/router";
-import { Status } from "jsr:@oak/commons@1/status";
 import {
     type Expense,
     type ExpenseQrCode,
