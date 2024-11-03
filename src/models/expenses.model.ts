@@ -8,7 +8,7 @@ export interface Expense {
     customerCountry?: string;
     documentType?: string;
     documentStatus?: string;
-    documentDate?: string;
+    documentDate?: Date;
     documentUniqueId?: string;
     atcud?: string;
     fiscalSpaceI?: string;
@@ -52,6 +52,15 @@ export interface Location {
 
 export interface ExpenseQrCode {
     qrCode: string;
+}
+
+export interface ExpenseFilter {
+    dateFrom?: Date;
+    dateTo?: Date;
+    minAmount?: number;
+    maxAmount?: number;
+    atcud?: string;
+    merchantVatNumber?: string;
 }
 
 export type ExpenseQrCodeList = Array<string>;
@@ -114,6 +123,32 @@ export const ExpenseQRCodeSchema = z.object({
 
 export const ExpenseQRCodeListSchema = z.array(QRCodeFormat);
 
-export const GetExpenseSchema = z.object({
-    expense: ExpenseSchema,
+const datePattern = /[0-9]{4}-[0-9]{2}-[0-9]{2}/;
+
+export const ExpenseFilterSchema = z.object({
+    dateFrom: z.string().regex(datePattern, {
+        message: `Must follow pattern YYYY-MM-DD`,
+    }).optional().transform((
+        val,
+    ) => (val ? new Date(val) : undefined)),
+    dateTo: z.string().regex(datePattern, {
+        message: `Must follow pattern YYYY-MM-DD`,
+    }).optional().transform((
+        val,
+    ) => (val ? new Date(val) : undefined)),
+    minAmount: z.string().optional().transform((
+        val,
+    ) => (val ? parseFloat(val) : undefined)),
+    maxAmount: z.string().optional().transform((
+        val,
+    ) => (val ? parseFloat(val) : undefined)),
+    atcud: z.string().optional(),
+    merchantVatNumber: z.string().optional(),
 }).strict();
+
+export const IdSchema = z.object({
+    id: z.string().length(24).regex(
+        /^[0-9a-fA-F]+$/,
+        "Must be a valid 24 character hex string",
+    ),
+});

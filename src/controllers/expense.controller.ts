@@ -2,6 +2,8 @@ import { Status } from "@oak/oak";
 import type { RouterContext } from "@oak/oak/router";
 import {
     type Expense,
+    type ExpenseFilter,
+    ExpenseFilterSchema,
     type ExpenseQrCode,
     type ExpenseQrCodeList,
 } from "../models/expenses.model.ts";
@@ -42,18 +44,21 @@ class ExpenseController {
         console.info(`Fetching Expense with ID: ${id}`);
         const expense = await ExpenseService.findById(id);
 
-        if (expense) {
-            response.body = expense;
-            response.status = Status.OK;
-        } else {
-            response.body = { message: "Expense not found" };
-            response.status = Status.NotFound;
-        }
+        response.body = expense;
+        response.status = Status.OK;
     }
 
-    public static async getList({ response }: RouterContext<string>) {
+    public static async getList({ request, response }: RouterContext<string>) {
         console.info("Fetching all Expenses");
-        const expenses = await ExpenseService.findAll();
+        const queryParams = Object.fromEntries(
+            request.url.searchParams,
+        );
+        const parsedFilter: ExpenseFilter = ExpenseFilterSchema.parse(
+            queryParams,
+        );
+        console.log(parsedFilter);
+
+        const expenses = await ExpenseService.findAll(parsedFilter);
         response.body = expenses;
         response.status = Status.OK;
     }

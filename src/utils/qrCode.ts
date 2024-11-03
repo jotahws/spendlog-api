@@ -1,4 +1,5 @@
 import type { Expense } from "../models/expenses.model.ts";
+import { formatDate, formatNumber } from "./typeUtils.ts";
 
 const getQrValues = (input: string): Record<string, string> => {
     const result: Record<string, string> = {};
@@ -12,11 +13,6 @@ const getQrValues = (input: string): Record<string, string> => {
     return result;
 };
 
-const formatNumber = (value: string): number | undefined => {
-    const num = Number(value);
-    return isNaN(num) ? undefined : num;
-};
-
 export const formatQr = (input: string): Expense => {
     const values: Record<string, string> = getQrValues(input);
 
@@ -26,7 +22,7 @@ export const formatQr = (input: string): Expense => {
         customerCountry: values["C"],
         documentType: values["D"],
         documentStatus: values["E"],
-        documentDate: values["F"],
+        documentDate: formatDate(values["F"]),
         documentUniqueId: values["G"],
         atcud: values["H"],
         fiscalSpaceI: values["I1"],

@@ -1,14 +1,16 @@
 import { Status, STATUS_TEXT } from "@oak/oak";
-import { ObjectId } from "mongodb";
+import { type Filter, ObjectId } from "mongodb";
 import db from "../config/db.ts";
 import { throwError } from "../middleware/errorHandler.middleware.ts";
-import type { Expense } from "../models/expenses.model.ts";
+import type { Expense, ExpenseFilter } from "../models/expenses.model.ts";
 
 export default class ExpenseService {
   public static async insert(expense: Expense): Promise<Expense> {
     const expensesCollection = db.getDatabase.collection<Expense>("expenses");
-    const expenseDup = await expensesCollection.findOne(expense);
-    if (expenseDup?.atcud) {
+    const expenseDup = await expensesCollection.findOne({
+      atcud: expense.atcud,
+    });
+    if (expenseDup !== null) {
       throwError({
         status: Status.Conflict,
         name: "Expense insert conflict",
@@ -17,8 +19,9 @@ export default class ExpenseService {
         type: STATUS_TEXT[Status.Conflict],
       });
     }
-    const sanitizedExpense = JSON.parse(JSON.stringify(expense));
-    const { insertedId } = await expensesCollection.insertOne(sanitizedExpense);
+    const { insertedId } = await expensesCollection.insertOne(expense, {
+      ignoreUndefined: true,
+    });
     return { _id: insertedId, ...expense };
   }
 
@@ -65,8 +68,39 @@ export default class ExpenseService {
     return expense ?? null;
   }
 
-  public static async findAll(): Promise<Expense[]> {
+  public static async findAll(filter: ExpenseFilter): Promise<Expense[]> {
     const expensesCollection = db.getDatabase.collection<Expense>("expenses");
-    return await expensesCollection.find().toArray();
+
+    const query: Filter<Expense> = {};
+
+    if (filter.dateFrom || filter.dateTo) {
+      query.documentDate = {};
+      if (filter.dateFrom !== undefined) {
+        query.documentDate.$gte = filter.dateFrom;
+      }
+      if (filter.dateTo !== undefined) {
+        query.documentDate.$lte = filter.dateTo;
+      }
+    }
+
+    if (filter.minAmount || filter.maxAmount) {
+      query.totalAmount = {};
+      if (filter.minAmount !== undefined) {
+        query.totalAmount.$gte = filter.minAmount;
+      }
+      if (filter.maxAmount !== undefined) {
+        query.totalAmount.$lte = filter.maxAmount;
+      }
+    }
+
+    if (filter.atcud) {
+      query.atcud = filter.atcud;
+    }
+
+    if (filter.merchantVatNumber) {
+      query.merchantVatNumber = filter.merchantVatNumber;
+    }
+
+    return await expensesCollection.find(query).toArray();
   }
 }
