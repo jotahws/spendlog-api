@@ -1,4 +1,4 @@
-import type { ObjectId } from "@db/mongo";
+import type { ObjectId } from "mongodb";
 import { z } from "zod";
 
 export interface Expense {

@@ -1,4 +1,4 @@
-import { MongoClient } from "@db/mongo";
+import { MongoClient } from "mongodb";
 import config from "./config.ts";
 
 const { dbName, mongoUri } = config;
@@ -24,11 +24,11 @@ class Database {
      */
     async connect(retries = 5, delay = 1000) {
         console.info(`MongoDB Server connecting...`);
-        const client: MongoClient = new MongoClient();
+        const client: MongoClient = new MongoClient(this.url);
 
         for (let attempt = 1; attempt <= retries; attempt++) {
             try {
-                await client.connect(this.url);
+                await client.connect();
                 this.client = client;
                 console.info("Database connected!");
                 return;
@@ -52,7 +52,7 @@ class Database {
      * returns database
      */
     get getDatabase() {
-        return this.client.database(this.dbName);
+        return this.client.db(this.dbName);
     }
 }
 

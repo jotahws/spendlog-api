@@ -1,5 +1,5 @@
-import { ObjectId } from "@db/mongo";
 import { Status, STATUS_TEXT } from "@oak/oak";
+import { ObjectId } from "mongodb";
 import db from "../config/db.ts";
 import { throwError } from "../middleware/errorHandler.middleware.ts";
 import type { Expense } from "../models/expenses.model.ts";
@@ -17,10 +17,9 @@ export default class ExpenseService {
         type: STATUS_TEXT[Status.Conflict],
       });
     }
-    const expenseId: string | ObjectId = await expensesCollection.insertOne(
-      expense,
-    );
-    return { _id: expenseId, ...expense };
+    const sanitizedExpense = JSON.parse(JSON.stringify(expense));
+    const { insertedId } = await expensesCollection.insertOne(sanitizedExpense);
+    return { _id: insertedId, ...expense };
   }
 
   public static async insertMany(

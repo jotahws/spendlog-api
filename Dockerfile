@@ -14,4 +14,4 @@ COPY . .
 RUN deno cache app.ts
 
 ENTRYPOINT ["deno"]
-CMD ["run", "--env-file=.env.prod", "--allow-net", "--allow-env", "app.ts"]
+CMD ["run", "--env-file=.env.prod", "--allow-net", "--allow-env", "--allow-read", "--allow-sys", "app.ts"]

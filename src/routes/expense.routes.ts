@@ -28,5 +28,9 @@ expenseRouter.get(
     "/expense/:id",
     ExpenseController.get,
 );
+expenseRouter.get(
+    "/expenses",
+    ExpenseController.getList,
+);
 
 export default expenseRouter;

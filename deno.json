@@ -1,16 +1,15 @@
 {
   "version": "1.0.0",
   "tasks": {
-    "dev": "deno run --watch --env --allow-net --allow-env app.ts",
-    "prod": "deno run --watch --env-file=.env.prod --allow-net --allow-env app.ts",
+    "dev": "deno run --watch --env --allow-net --allow-read --allow-sys --allow-env app.ts",
+    "prod": "deno run --watch --env-file=.env.prod --allow-net --allow-env --allow-sys --allow-env app.ts",
     "docker:build": "docker build -t jwind/spendlog-api .",
     "docker:run:prod": "docker run -d -p 443:8000 -v $(pwd):/app --name prod jwind/spendlog-api",
-    "build:prod": "deno compile --env-file=.env.prod --allow-net --allow-env -o $(pwd)/build/app --target x86_64-unknown-linux-gnu app.ts"
+    "build:prod": "deno compile --env-file=.env.prod --allow-net --allow-env --allow-sys --allow-env -o $(pwd)/build/app --target x86_64-unknown-linux-gnu app.ts"
   },
   "imports": {
-    "@db/mongo": "jsr:@db/mongo@^0.33.0",
-    "@oak/commons": "jsr:@oak/commons@^1.0.0",
     "@oak/oak": "jsr:@oak/oak@^17.1.0",
+    "mongodb": "npm:mongodb@^6.10.0",
     "zod": "npm:zod@^3.23.8"
   }
 }
