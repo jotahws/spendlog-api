@@ -24,5 +24,9 @@ expenseRouter.post(
     validate(ExpenseQRCodeListSchema),
     ExpenseController.createManyWithQrCode,
 );
+expenseRouter.get(
+    "/expense/:id",
+    ExpenseController.get,
+);
 
 export default expenseRouter;

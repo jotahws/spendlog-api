@@ -1,4 +1,4 @@
-import type { ObjectId } from "@db/mongo";
+import { ObjectId } from "@db/mongo";
 import { Status, STATUS_TEXT } from "@oak/oak";
 import db from "../config/db.ts";
 import { throwError } from "../middleware/errorHandler.middleware.ts";
@@ -11,7 +11,7 @@ export default class ExpenseService {
     if (expenseDup?.atcud) {
       throwError({
         status: Status.Conflict,
-        name: "ExpenseService insert Conflict",
+        name: "Expense insert conflict",
         path: "expense.service.insert",
         message: `Expense ${expense.atcud} already inserted`,
         type: STATUS_TEXT[Status.Conflict],
@@ -41,12 +41,33 @@ export default class ExpenseService {
     if (!insertedExpenses.length) {
       throwError({
         status: Status.BadRequest,
-        name: "ExpenseService insertMany errors",
+        name: "Expense bulk insert errors",
         path: "expense.service.insertMany",
         message: errors,
         type: STATUS_TEXT[Status.BadRequest],
       });
     }
     return { inserted: insertedExpenses, errors };
+  }
+
+  public static async findById(id: string): Promise<Expense | null> {
+    const expensesCollection = db.getDatabase.collection<Expense>("expenses");
+    const objectId = new ObjectId(id);
+    const expense = await expensesCollection.findOne({ _id: objectId });
+    if (!expense) {
+      throwError({
+        status: Status.NotFound,
+        name: "Expense not found",
+        path: "expense.service.findById",
+        message: `Expense ${id} not found`,
+        type: STATUS_TEXT[Status.NotFound],
+      });
+    }
+    return expense ?? null;
+  }
+
+  public static async findAll(): Promise<Expense[]> {
+    const expensesCollection = db.getDatabase.collection<Expense>("expenses");
+    return await expensesCollection.find().toArray();
   }
 }

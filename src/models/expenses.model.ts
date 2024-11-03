@@ -1,7 +1,8 @@
+import type { ObjectId } from "@db/mongo";
 import { z } from "zod";
 
 export interface Expense {
-    _id?: string;
+    _id?: ObjectId;
     merchantVatNumber?: string;
     customerVatNumber?: string;
     customerCountry?: string;
@@ -112,3 +113,7 @@ export const ExpenseQRCodeSchema = z.object({
 }).strict();
 
 export const ExpenseQRCodeListSchema = z.array(QRCodeFormat);
+
+export const GetExpenseSchema = z.object({
+    expense: ExpenseSchema,
+}).strict();

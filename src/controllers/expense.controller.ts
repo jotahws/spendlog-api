@@ -36,6 +36,27 @@ class ExpenseController {
         response.body = insertedExpenses;
         response.status = Status.Created;
     }
+
+    public static async get({ params, response }: RouterContext<string>) {
+        const { id } = params;
+        console.info(`Fetching Expense with ID: ${id}`);
+        const expense = await ExpenseService.findById(id);
+
+        if (expense) {
+            response.body = expense;
+            response.status = Status.OK;
+        } else {
+            response.body = { message: "Expense not found" };
+            response.status = Status.NotFound;
+        }
+    }
+
+    public static async getList({ response }: RouterContext<string>) {
+        console.info("Fetching all Expenses");
+        const expenses = await ExpenseService.findAll();
+        response.body = expenses;
+        response.status = Status.OK;
+    }
 }
 
 export default ExpenseController;
