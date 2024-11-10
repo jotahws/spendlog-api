@@ -3,7 +3,8 @@ import { formatDate, formatNumber } from "./typeUtils.ts";
 
 const getQrValues = (input: string): Record<string, string> => {
     const result: Record<string, string> = {};
-    const pairs = input.split("*");
+    const cleanInput = input.endsWith("*") ? input.slice(0, -1) : input;
+    const pairs = cleanInput.split("*");
     for (const pair of pairs) {
         const [key, value] = pair.split(":");
         if (key && value !== undefined) {

@@ -103,4 +103,18 @@ export default class ExpenseService {
 
     return await expensesCollection.find(query).toArray();
   }
+
+  public static async deleteByAtcud(atcud: string): Promise<void> {
+    const expensesCollection = db.getDatabase.collection<Expense>("expenses");
+    const result = await expensesCollection.deleteOne({ atcud });
+    if (result.deletedCount === 0) {
+      throwError({
+        status: Status.NotFound,
+        name: "Expense not found",
+        path: "expense.service.deleteByAtcud",
+        message: `Expense with ATCUD ${atcud} not found`,
+        type: STATUS_TEXT[Status.NotFound],
+      });
+    }
+  }
 }
