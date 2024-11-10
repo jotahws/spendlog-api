@@ -6,6 +6,7 @@ import {
     validateRouteParams,
 } from "../middleware/validate.middleware.ts";
 import {
+    AtcudSchema,
     ExpenseFilterSchema,
     ExpenseQRCodeListSchema,
     ExpenseQRCodeSchema,
@@ -39,6 +40,11 @@ expenseRouter.get(
     "/expenses",
     validateQueryParams(ExpenseFilterSchema),
     ExpenseController.getList,
+);
+expenseRouter.delete(
+    "/expense/:atcud",
+    validateRouteParams(AtcudSchema),
+    ExpenseController.deleteByAtcud,
 );
 
 export default expenseRouter;

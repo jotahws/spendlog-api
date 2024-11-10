@@ -62,6 +62,15 @@ class ExpenseController {
         response.body = expenses;
         response.status = Status.OK;
     }
+
+    public static async deleteByAtcud(
+        { params, response }: RouterContext<string>,
+    ) {
+        const { atcud } = params;
+        console.info(`Deleting Expense with ATCUD: ${atcud}`);
+        await ExpenseService.deleteByAtcud(atcud);
+        response.status = Status.OK;
+    }
 }
 
 export default ExpenseController;
