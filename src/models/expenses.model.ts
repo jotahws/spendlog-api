@@ -111,11 +111,11 @@ export const ExpenseSchema = z.object({
 }).strict();
 
 const qrCodePattern =
-    /^([A-Z][0-9]?:[^*]*)?(\*[A-Z][0-9]?:[^*]*)*(\*O:[^*]*)?(\*[A-Z][0-9]?:[^*]*)*$/;
+    /^([A-Z][0-9]?:[^*]*)?(\*[A-Z][0-9]?:[^*]*)*(\*O:[^*]*)?(\*[A-Z][0-9]?:[^*]*)*\*?$/;
 
 const QRCodeFormat = z.string().regex(qrCodePattern, {
     message: `Must follow pattern ${qrCodePattern}`,
-});
+}).transform((val) => val.endsWith("*") ? val.slice(0, -1) : val);
 
 export const ExpenseQRCodeSchema = z.object({
     qrCode: QRCodeFormat,
@@ -151,4 +151,8 @@ export const IdSchema = z.object({
         /^[0-9a-fA-F]+$/,
         "Must be a valid 24 character hex string",
     ),
+});
+
+export const AtcudSchema = z.object({
+    atcud: z.string(),
 });
