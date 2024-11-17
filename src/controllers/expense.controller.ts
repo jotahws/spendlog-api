@@ -56,8 +56,6 @@ class ExpenseController {
         const parsedFilter: ExpenseFilter = ExpenseFilterSchema.parse(
             queryParams,
         );
-        console.log(parsedFilter);
-
         const expenses = await ExpenseService.findAll(parsedFilter);
         response.body = expenses;
         response.status = Status.OK;

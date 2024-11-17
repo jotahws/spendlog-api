@@ -58,5 +58,53 @@ export const formatQr = (input: string): Expense => {
         hash: values["Q"],
         certificateNumber: values["R"],
         additionalInformation: values["S"],
+        //Add the original key in case it is not mapped
+        ...Object.keys(values).filter((key) =>
+            ![
+                "A",
+                "B",
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I1",
+                "I2",
+                "I3",
+                "I4",
+                "I5",
+                "I6",
+                "I7",
+                "I8",
+                "J1",
+                "J2",
+                "J3",
+                "J4",
+                "J5",
+                "J6",
+                "J7",
+                "J8",
+                "K1",
+                "K2",
+                "K3",
+                "K4",
+                "K5",
+                "K6",
+                "K7",
+                "K8",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+            ].includes(key)
+        ).reduce((acc: Record<string, string>, key) => {
+            acc[key] = values[key];
+            return acc;
+        }, {}),
     };
 };

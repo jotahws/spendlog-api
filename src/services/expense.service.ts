@@ -101,7 +101,8 @@ export default class ExpenseService {
       query.merchantVatNumber = filter.merchantVatNumber;
     }
 
-    return await expensesCollection.find(query).toArray();
+    return await expensesCollection.find(query).sort({ documentDate: -1 })
+      .toArray();
   }
 
   public static async deleteByAtcud(atcud: string): Promise<void> {
