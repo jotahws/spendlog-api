@@ -1,4 +1,6 @@
-import { Next, RouterContext } from "@oak/oak";
+import { Next, RouterContext, Status } from "@oak/oak";
+import UserService from "../services/user.service.ts";
+import { throwError } from "./errorHandler.middleware.ts";
 
 const sessionStore = new Map<string, Record<string, unknown>>();
 
@@ -23,6 +25,36 @@ export async function sessionMiddleware(
 
     await next();
 
-    // Optionally save session data back to the store
     sessionStore.set(sessionId, ctx.state.session);
+}
+
+export async function validateApiKey(
+    ctx: RouterContext<string>,
+    next: Next,
+) {
+    const key = ctx.request.headers.get("Authorization")?.split(" ")[1];
+    console.info(`Checking API Key ${key}`);
+    if (!key) {
+        throwError({
+            status: Status.Forbidden,
+            name: "No API Key",
+            path: "session.middleware",
+            message: "You must have an API Key to access.",
+            type: "Forbidden",
+        });
+    }
+    const user = await UserService.findByApiKey(key ?? "");
+    if (user) {
+        ctx.state.user = user;
+    } else {
+        throwError({
+            status: Status.Unauthorized,
+            name: "Invalid API Key",
+            path: "session.middleware",
+            message: "The api key is invalid.",
+            type: "Unauthorized",
+        });
+    }
+
+    await next();
 }

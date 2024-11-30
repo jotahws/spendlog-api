@@ -142,7 +142,7 @@ class AuthController {
         );
         const email: string = queryParams.email;
 
-        const user = await UserService.getByEmail(email);
+        const user = await UserService.findByEmail(email);
         const passkeys = user?.passkeys || [];
 
         const opts: GenerateAuthenticationOptionsOpts = {
@@ -172,7 +172,7 @@ class AuthController {
         const expectedChallenge = state.session.challenge;
 
         let dbCredential: WebAuthnCredential | undefined;
-        const user = await UserService.getByEmail(email);
+        const user = await UserService.findByEmail(email);
         for (const cred of user?.passkeys || []) {
             if (cred.id === authResponse.id) {
                 dbCredential = cred;

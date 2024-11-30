@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export interface Expense {
     _id?: ObjectId;
+    userId?: ObjectId;
     merchantVatNumber?: string;
     customerVatNumber?: string;
     customerCountry?: string;
