@@ -32,7 +32,9 @@ export async function validateApiKey(
     ctx: RouterContext<string>,
     next: Next,
 ) {
-    const key = ctx.request.headers.get("Authorization")?.split(" ")[1];
+    const authorization = ctx.request.headers.get("Authorization") ||
+        await ctx.cookies.get("Authorization");
+    const key = authorization?.split(" ")[1];
     console.info(`Checking API Key ${key}`);
     if (!key) {
         throwError({
