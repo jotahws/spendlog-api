@@ -9,6 +9,8 @@
   },
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.1.0",
+    "@simplewebauthn/server": "npm:@simplewebauthn/server@^11.0.0",
+    "@simplewebauthn/types": "npm:@simplewebauthn/types@^11.0.0",
     "mongodb": "npm:mongodb@^6.10.0",
     "zod": "npm:zod@^3.23.8"
   }

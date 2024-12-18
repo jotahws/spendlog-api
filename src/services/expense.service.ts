@@ -5,10 +5,14 @@ import { throwError } from "../middleware/errorHandler.middleware.ts";
 import type { Expense, ExpenseFilter } from "../models/expenses.model.ts";
 
 export default class ExpenseService {
-  public static async insert(expense: Expense): Promise<Expense> {
+  public static async insert(
+    expense: Expense,
+    userId: string,
+  ): Promise<Expense> {
     const expensesCollection = db.getDatabase.collection<Expense>("expenses");
     const expenseDup = await expensesCollection.findOne({
       atcud: expense.atcud,
+      userId: new ObjectId(userId),
     });
     if (expenseDup !== null) {
       throwError({
@@ -19,7 +23,10 @@ export default class ExpenseService {
         type: STATUS_TEXT[Status.Conflict],
       });
     }
-    const { insertedId } = await expensesCollection.insertOne(expense, {
+    const { insertedId } = await expensesCollection.insertOne({
+      ...expense,
+      userId: new ObjectId(userId),
+    }, {
       ignoreUndefined: true,
     });
     return { _id: insertedId, ...expense };
@@ -27,13 +34,17 @@ export default class ExpenseService {
 
   public static async insertMany(
     expenses: Expense[],
+    userId: string,
   ): Promise<{ inserted: Expense[]; errors: string[] }> {
     const insertedExpenses: Expense[] = [];
     const errors: string[] = [];
 
     for (const expense of expenses) {
       try {
-        const insertedExpense = await this.insert(expense);
+        const insertedExpense = await this.insert(
+          expense,
+          userId,
+        );
         insertedExpenses.push(insertedExpense);
       } catch (error) {
         const e = error as Error;
@@ -52,10 +63,16 @@ export default class ExpenseService {
     return { inserted: insertedExpenses, errors };
   }
 
-  public static async findById(id: string): Promise<Expense | null> {
+  public static async findById(
+    id: string,
+    userId: string,
+  ): Promise<Expense | null> {
     const expensesCollection = db.getDatabase.collection<Expense>("expenses");
     const objectId = new ObjectId(id);
-    const expense = await expensesCollection.findOne({ _id: objectId });
+    const expense = await expensesCollection.findOne({
+      _id: objectId,
+      userId: new ObjectId(userId),
+    });
     if (!expense) {
       throwError({
         status: Status.NotFound,
@@ -68,10 +85,15 @@ export default class ExpenseService {
     return expense ?? null;
   }
 
-  public static async findAll(filter: ExpenseFilter): Promise<Expense[]> {
+  public static async findAll(
+    filter: ExpenseFilter,
+    userId: string,
+  ): Promise<Expense[]> {
     const expensesCollection = db.getDatabase.collection<Expense>("expenses");
 
-    const query: Filter<Expense> = {};
+    const query: Filter<Expense> = {
+      userId: new ObjectId(userId),
+    };
 
     if (filter.dateFrom || filter.dateTo) {
       query.documentDate = {};
@@ -105,9 +127,15 @@ export default class ExpenseService {
       .toArray();
   }
 
-  public static async deleteByAtcud(atcud: string): Promise<void> {
+  public static async deleteByAtcud(
+    atcud: string,
+    userId: string,
+  ): Promise<void> {
     const expensesCollection = db.getDatabase.collection<Expense>("expenses");
-    const result = await expensesCollection.deleteOne({ atcud });
+    const result = await expensesCollection.deleteOne({
+      atcud,
+      userId: new ObjectId(userId),
+    });
     if (result.deletedCount === 0) {
       throwError({
         status: Status.NotFound,
