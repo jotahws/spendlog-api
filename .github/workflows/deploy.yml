@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy spendlog-api
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
             --group-id ${{ secrets.EC2_SG_ID }} \
             --protocol tcp \
             --port 22 \
-            --cidr ${{ steps.ip.outputs.ipv4 }}/32
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32 \
 
       - name: Deploy and Build on EC2
         run: |
@@ -53,21 +53,16 @@ jobs:
           # Copy all files to the EC2 instance
           scp -o StrictHostKeyChecking=no -r $PWD ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }} || { echo "Failed to copy files"; exit 1; }
 
-          echo "Connecting via SSH and building the Docker container..."
+          echo "Connecting via SSH and deploying with Docker Compose..."
           # Connect via SSH and build, stop, remove, and run the new container
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e  # Exit on error
             cd ${{ secrets.EC2_DEPLOY_PATH }}
-            echo "Building Docker image..."
-            docker build -t spendlog-api . || { echo "Docker build failed"; exit 1; }
-            echo "Removing source files..."
-            rm -rf ${{ secrets.EC2_DEPLOY_PATH }}
-            echo "Stopping existing container..."
-            docker stop api || true
-            echo "Removing existing container..."
-            docker rm api || true
-            echo "Running new container..."
-            docker run -d -p 443:8000 --network internal-network --name api spendlog-api || { echo "Failed to run Docker container"; exit 1; }
+            
+            echo "Starting Docker Compose..."
+            docker-compose down || true
+            docker-compose pull
+            docker-compose up -d --build || { echo "Failed to start containers"; exit 1; }
           EOF
 
       - name: Revoke runner IP Address
