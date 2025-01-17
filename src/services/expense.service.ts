@@ -69,10 +69,48 @@ export default class ExpenseService {
   ): Promise<Expense | null> {
     const expensesCollection = db.getDatabase.collection<Expense>("expenses");
     const objectId = new ObjectId(id);
-    const expense = await expensesCollection.findOne({
-      _id: objectId,
-      userId: new ObjectId(userId),
-    });
+    const expense = await expensesCollection.aggregate([
+      {
+        $match: {
+          _id: objectId,
+          userId: new ObjectId(userId),
+        },
+      },
+      { $sort: { documentDate: -1 } },
+      {
+        $lookup: {
+          from: "merchants",
+          localField: "merchantVatNumber",
+          foreignField: "nif",
+          as: "merchantData",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                nif: 1,
+                title: 1,
+                city: 1,
+                activity: 1,
+              },
+            },
+          ],
+        },
+      },
+      { $unwind: { path: "$merchantData", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          merchantName: "$merchantData.title",
+          merchantCity: "$merchantData.city",
+          merchantActivity: "$merchantData.activity",
+        },
+      },
+      {
+        $project: {
+          merchantData: 0,
+        },
+      },
+    ]).next();
+
     if (!expense) {
       throwError({
         status: Status.NotFound,
@@ -122,9 +160,42 @@ export default class ExpenseService {
     if (filter.merchantVatNumber) {
       query.merchantVatNumber = filter.merchantVatNumber;
     }
-
-    return await expensesCollection.find(query).sort({ documentDate: -1 })
-      .toArray();
+    return await expensesCollection.aggregate([
+      { $match: query },
+      { $sort: { documentDate: -1 } },
+      {
+        $lookup: {
+          from: "merchants",
+          localField: "merchantVatNumber",
+          foreignField: "nif",
+          as: "merchantData",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                nif: 1,
+                title: 1,
+                city: 1,
+                activity: 1,
+              },
+            },
+          ],
+        },
+      },
+      { $unwind: { path: "$merchantData", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          merchantName: "$merchantData.title",
+          merchantCity: "$merchantData.city",
+          merchantActivity: "$merchantData.activity",
+        },
+      },
+      {
+        $project: {
+          merchantData: 0,
+        },
+      },
+    ]).toArray();
   }
 
   public static async deleteByAtcud(

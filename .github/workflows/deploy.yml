@@ -51,7 +51,7 @@ jobs:
         run: |
           echo "Copying files to the EC2 instance..."
           # Copy all files to the EC2 instance
-          scp -o StrictHostKeyChecking=no -r $PWD ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }} || { echo "Failed to copy files"; exit 1; }
+          scp -o StrictHostKeyChecking=no -r $GITHUB_WORKSPACE/* ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }} || { echo "Failed to copy files"; exit 1; }
 
           echo "Connecting via SSH and deploying with Docker Compose..."
           # Connect via SSH and build, stop, remove, and run the new container

@@ -1,5 +1,6 @@
 import type { ObjectId } from "mongodb";
 import { z } from "zod";
+import { Merchant } from "./merchant.model.ts";
 
 export interface Expense {
     _id?: ObjectId;
@@ -44,6 +45,7 @@ export interface Expense {
     hash?: string;
     certificateNumber?: string;
     additionalInformation?: string;
+    merchantData: Merchant;
 }
 
 export interface Location {
